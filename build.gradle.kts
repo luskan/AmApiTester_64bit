@@ -10,7 +10,6 @@ java {
     sourceCompatibility = JavaVersion.VERSION_1_7
     targetCompatibility = JavaVersion.VERSION_1_7
 
-    // (optional) if you have a JDK 7 installed and want Gradle to pick it up:
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(7))
     }
@@ -28,4 +27,28 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
+}
+
+tasks.jar {
+    // Set the jar name to apitester without version:
+    archiveBaseName.set("apitester")
+    archiveVersion.set("")
+
+    // Tell Gradle which class is your entry point:
+    manifest {
+        attributes["Main-Class"] = "org.example.Main" // Java main class
+    }
+
+    // include compiled classes and resources:
+    from(sourceSets.main.get().output)
+
+    // unpack and include all runtime dependencies:
+    from({
+        configurations.runtimeClasspath.get()
+            .filter { it.name.endsWith(".jar") }
+            .map { zipTree(it) }
+    })
+
+    // avoid duplicate files (e.g. META-INF services)
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
